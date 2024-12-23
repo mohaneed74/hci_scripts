@@ -89,13 +89,13 @@ def choose_answer_based_on_angle(angle):
     """Choose an answer based on the received marker angle."""
     global selected_button_index
     # Divide 360° into four quadrants
-    if 0 <= angle < 50:
+    if 0 <= angle < 30 or 120 <= angle < 150 or 240 <= angle < 270:
         selected_index = 0
-    elif 60 <= angle < 100:
+    elif 30 <= angle < 60 or 150 <= angle < 180 or 270 <= angle < 300:
         selected_index = 1
-    elif 110 <= angle < 160:
+    elif 60 <= angle < 90 or 180 <= angle < 210 or 300 <= angle < 330:
         selected_index = 2
-    else:
+    elif 90 <= angle < 120 or 210 <= angle < 240 or 330 <= angle < 360:
         selected_index = 3
 
     if selected_index != selected_button_index:
@@ -181,25 +181,32 @@ def start_server_and_quiz(student, client_socket=None):
 
 def parse_client_data(data):
     """Parse the client data string into a list of data objects."""
-    markers = []
+    markers=[]
     try:
-        # Check if the data contains multiple markers separated by ";"
         if ";" in data:
             for marker_info in data.split(";"):
                 marker_info = marker_info.strip()
-                if marker_info:  # Ensure marker info is not empty
-                    marker_id, marker_angle = marker_info.split(",")
-                    markers.append({'id': int(marker_id), 'angle': float(marker_angle)})  # Use float for angle
-                    print({'id': int(marker_id), 'angle': float(marker_angle)})
+                if marker_info:
+                    marker_id, marker_angle, marker_x, marker_y = marker_info.split(",")
+                    markers.append({
+                        'id': int(marker_id),
+                        'angle': float(marker_angle),
+                        'x': float(marker_x) * 800,
+                        'y': float(marker_y) * 450,
+                        'ishit': False
+
+                    })
         else:
-            # Handle single marker data
-            marker_id, marker_angle = data.split(",")
-            markers.append({'id': int(marker_id), 'angle': float(marker_angle)})  # Use float for angle
-            print({'id': int(marker_id), 'angle': float(marker_angle)})
+            marker_id, marker_angle, marker_x, marker_y = data.split(",")
+            markers.append({
+                'id': int(marker_id),
+                'angle': float(marker_angle),
+                'x': float(marker_x) * 800,
+                'y': float(marker_y) * 450,
+                'ishit': False
+            })
     except ValueError as e:
         print(f"Invalid data format received: {data} - Error: {e}")
-    except Exception as e:
-        print(f"Unexpected error while parsing data: {e}")
     return markers
 
 

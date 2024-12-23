@@ -9,7 +9,7 @@ from QuizGen import start_server_and_quiz
 student_data=read_highschool_students_from_csv('students data.csv')
 listOfVideos=[]
 # Define global variables
-image_paths = [f"fruit_images/{i}.png" for i in range(1, 5)]
+image_paths = [f"fruit_images/{i}.png" for i in range(1, 4)]
 image_info = []
 moving_images_info = []
 marker_info=[]
@@ -38,9 +38,9 @@ def CreateLearnScreen(root, student):
     gray_image_frame = ctk.CTkFrame(mainframe, width=700, height=(int(450 / 2) - 100), corner_radius=10)
     gray_image_frame.place(x=0, y=0)
 
-    start_x = 100
+    start_x = 120
     start_y = 20
-    x_offset = 150  # Distance between each image in the row
+    x_offset = 180  # Distance between each image in the row
 
     try:
         # Loop over the image paths
@@ -116,8 +116,10 @@ def parse_client_data(data):
         print(f"Invalid data format received: {data} - Error: {e}")
     return markers
 
+fruitcounter=0
 # The rest of the code remains the same as in your original script
 def update_gui_based_on_marker(marker, student):
+    global fruitcounter
     fruit_name_label.configure(text="")
     fruit_description_label.configure(text="")
     fruit_benefits_label.configure(text="")
@@ -181,6 +183,8 @@ def update_gui_based_on_marker(marker, student):
                     if (gray['x'] - stickiness_range <= cat['x'] + 50 <= gray['x'] + 100 + stickiness_range) and \
                             (gray['y'] - stickiness_range <= cat['y'] + 50 <= gray['y'] + 100 + stickiness_range):
                         cat['is_there'] = True
+                        show_message(root,"rotate right to show information , rotate left for fun fact, rotate 180 to start quiz")
+                        fruitcounter+=1
                         array.append(cat['id'])
                         print(f"sticks id : {array}")
                         cat['x'] = gray['x']
@@ -189,6 +193,8 @@ def update_gui_based_on_marker(marker, student):
                         show_message(root,"that's correct")
                         # Once stuck, align the position with the gray image
                         cat['label'].place(x=cat['x'], y=cat['y'])
+                        if fruitcounter == 3:
+                            show_message(root, "If you need to go to quiz please show marker 6")
                         break
 
 # Global variables to store video playback state
@@ -199,7 +205,6 @@ video_playing = False  # To track if a video is currently playing
 
 def rotate(marker, student):
     global current_video, current_video_thread, video_playing  # Access global variables
-    show_message(root,"rotate right to show information , rotate left for fun fact, rotate 180 to start quiz")
     # Check if the student has gender information
     gender_pronoun = "he" if student['gender'].lower() == 'male' else "she"
     is_child = student.get('age', 0) <= 12  # Assuming 'age' field exists and children are <= 12 years old
@@ -209,7 +214,6 @@ def rotate(marker, student):
         1: {"name": "Apple", "description": f"An apple is crunchy and sweet. {gender_pronoun} will enjoy it! {smiley}", "benefits": "Apples help you stay healthy."},
         2: {"name": "Banana", "description": f"A banana is yellow and soft. {gender_pronoun} will love it! {smiley}", "benefits": "Bananas provide potassium and energy."},
         3: {"name": "Orange", "description": f"An orange is juicy and tangy. {gender_pronoun} will enjoy it! {smiley}", "benefits": "Oranges are rich in vitamin C."},
-        4: {"name": "Watermelon", "description": f"A watermelon is a large fruit with green skin and red inside. {gender_pronoun} will love eating it! {smiley}", "benefits": "Watermelon helps you stay hydrated."}
     }
     
     for id in array:
@@ -234,9 +238,7 @@ def rotate(marker, student):
                     fruit_description_label.configure(text=fun_fact[marker['id']])
                     fruit_benefits_label.configure(text="Try touching the fruit to interact!")
                     
-            if 180 <= marker['angle'] <= 185:
-                root.destroy()
-                start_server_and_quiz(student, current_client_socket)
+
 
 array=[]
 # Ensure CreateLearnScreen, handle_client_data, start_server, and create_server_gui functions
@@ -250,6 +252,9 @@ def handle_client_data(client_socket, student):
             # print(f"Received markers: {markers}")
             for marker in markers:
                 if marker not in marker_info:
+                    if marker['id'] == 6 and fruitcounter == 3:
+                        root.withdraw()  # Hide the current root window
+                        start_server_and_quiz(student, current_client_socket)
                     marker_info.append(marker) 
                     print(f"marker angle : {marker['angle']}") # Save marker to marker_info if not already there
                     update_gui_based_on_marker(marker, student)

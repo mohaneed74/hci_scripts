@@ -67,7 +67,7 @@ class EyeTracker(threading.Thread):
             if key == 27:  # ESC key
                 self.stop()
         self.cap.release()
-        cv2.destroyAllWindows()
+        cv2.destroyWindow("Frame")
 
     def stop(self):
         self.running = False
